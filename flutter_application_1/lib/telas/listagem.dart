@@ -6,7 +6,7 @@ import 'cadastro.dart';
 class Listagem extends StatefulWidget {
   final ContatosRepository contatos;
 
-  Listagem({required this.contatos});
+  const Listagem({super.key, required this.contatos});
 
   @override
   State<Listagem> createState() => _ListagemState(contatos: contatos);
@@ -14,55 +14,79 @@ class Listagem extends StatefulWidget {
 
 class _ListagemState extends State<Listagem> {
   final ContatosRepository contatos;
+  List<Contato> _contatosList = [];
 
   _ListagemState({required this.contatos});
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarContatos();
+  }
+
+  void _carregarContatos() async {
+    List<Contato> contatosList = await contatos.getContatos();
+    setState(() {
+      _contatosList = contatosList;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lista de Contatos'),
+        title: const Text('Lista de Contatos'),
       ),
       body: ListView.builder(
-        itemCount: contatos.getContatos().length,
+        itemCount: _contatosList.length,
         itemBuilder: (context, index) {
-          Contato c = contatos.getContatos()[index];
+          Contato c = _contatosList[index];
           return ListTile(
             title: Text(c.nome),
             subtitle: Text('Tel: ${c.telefone}\nEmail: ${c.email}'),
             leading: CircleAvatar(
-              child: Text(c.nome[0]), // Exibe a primeira letra do nome
+              child: Text(c.nome[0]),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(Icons.edit),
+                  icon: const Icon(Icons.edit),
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => Cadastro(
-                        contatos: contatos,
-                        index: index,
-                        contato: c,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Cadastro(
+                          contatos: contatos,
+                          index: c.id!,
+                          contato: c,
+                        ),
                       ),
-                    ).then((_) {
-                      setState(() {});
-                    });
+                    ).then((_) => _carregarContatos());
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    setState(() {
-                      contatos.removeContato(index);
-                    });
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    await contatos.removeContato(c.id!);
+                    _carregarContatos();
                   },
                 ),
               ],
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Cadastro(contatos: contatos),
+            ),
+          ).then((_) => _carregarContatos());
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

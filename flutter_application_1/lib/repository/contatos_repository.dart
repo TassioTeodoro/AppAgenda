@@ -1,21 +1,22 @@
 import '../models/contato.dart';
+import 'database_helper.dart';
 
 class ContatosRepository {
-  final List<Contato> contatos = [];
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
-  void addContato(Contato contato) {
-    contatos.add(contato);
+  Future<List<Contato>> getContatos() async {
+    return await _dbHelper.getContatos();
   }
 
-  void removeContato(int index) {
-    contatos.removeAt(index);
+  Future<void> addContato(Contato contato) async {
+    await _dbHelper.addContato(contato);
   }
 
-  void updateContato(int index, Contato contato) {
-    contatos[index] = contato;
+  Future<void> updateContato(Contato contato) async {
+    await _dbHelper.updateContato(contato);
   }
 
-  List<Contato> getContatos() {
-    return contatos;
+  Future<void> removeContato(int id) async {
+    await _dbHelper.deleteContato(id);
   }
 }

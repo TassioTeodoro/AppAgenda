@@ -4,12 +4,28 @@ import '../models/contato.dart';
 import 'cadastro.dart';
 
 class Principal extends StatefulWidget {
+  const Principal({super.key});
+
   @override
   State<Principal> createState() => _PrincipalState();
 }
 
 class _PrincipalState extends State<Principal> {
   final ContatosRepository contatos = ContatosRepository();
+  List<Contato> _contatosList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarContatos();
+  }
+
+  void _carregarContatos() async {
+    List<Contato> contatosList = await contatos.getContatos();
+    setState(() {
+      _contatosList = contatosList;
+    });
+  }
 
   void _adicionarContato() {
     Navigator.push(
@@ -17,9 +33,7 @@ class _PrincipalState extends State<Principal> {
       MaterialPageRoute(
         builder: (context) => Cadastro(contatos: contatos),
       ),
-    ).then((_) {
-      setState(() {}); // Atualiza a lista após retornar do cadastro
-    });
+    ).then((_) => _carregarContatos());
   }
 
   void _editarContato(int index, Contato contato) {
@@ -32,15 +46,12 @@ class _PrincipalState extends State<Principal> {
           contato: contato,
         ),
       ),
-    ).then((_) {
-      setState(() {}); // Atualiza a lista após editar o contato
-    });
+    ).then((_) => _carregarContatos());
   }
 
-  void _removerContato(int index) {
-    setState(() {
-      contatos.removeContato(index); // Remove o contato da lista
-    });
+  void _removerContato(int id) async {
+    await contatos.removeContato(id); // Remove do banco de dados
+    _carregarContatos(); // Atualiza a lista após remover
   }
 
   @override
@@ -49,7 +60,7 @@ class _PrincipalState extends State<Principal> {
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
         centerTitle: true,
-        title: Text(
+        title: const Text(
           "Agenda de Contatos",
           style: TextStyle(
             fontSize: 25,
@@ -57,9 +68,9 @@ class _PrincipalState extends State<Principal> {
         ),
       ),
       body: ListView.builder(
-        itemCount: contatos.getContatos().length,
+        itemCount: _contatosList.length,
         itemBuilder: (context, index) {
-          Contato c = contatos.getContatos()[index];
+          Contato c = _contatosList[index];
           return ListTile(
             title: Text(c.nome),
             subtitle: Text('Telefone: ${c.telefone}\nEmail: ${c.email}'),
@@ -71,16 +82,16 @@ class _PrincipalState extends State<Principal> {
               children: [
                 // Botão para editar o contato
                 IconButton(
-                  icon: Icon(Icons.edit),
+                  icon: const Icon(Icons.edit),
                   onPressed: () {
                     _editarContato(index, c); // Chama a função de editar
                   },
                 ),
                 // Botão para remover o contato
                 IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: () {
-                    _removerContato(index); // Chama a função de remover
+                    _removerContato(c.id!); // Chama a função de remover
                   },
                 ),
               ],
@@ -90,7 +101,7 @@ class _PrincipalState extends State<Principal> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _adicionarContato,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
