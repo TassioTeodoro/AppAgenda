@@ -5,18 +5,38 @@ class ContatosRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   Future<List<Contato>> getContatos() async {
-    return await _dbHelper.getContatos();
+    try {
+      return await _dbHelper.getContatos();
+    } catch (e) {
+      // Tratar o erro de maneira adequada
+      throw Exception('Erro ao obter contatos: $e');
+    }
   }
 
   Future<void> addContato(Contato contato) async {
-    await _dbHelper.addContato(contato);
+    try {
+      await _dbHelper.addContato(contato);
+    } catch (e) {
+      // Tratar o erro de maneira adequada
+      throw Exception('Erro ao adicionar contato: $e');
+    }
   }
 
   Future<void> updateContato(Contato contato) async {
-    await _dbHelper.updateContato(contato);
+    try {
+      await _dbHelper.updateContato(contato);
+    } catch (e) {
+      // Tratar o erro de maneira adequada
+      throw Exception('Erro ao atualizar contato: $e');
+    }
   }
 
   Future<void> removeContato(int id) async {
-    await _dbHelper.deleteContato(id);
+    try {
+      await _dbHelper.deleteContato(id);
+    } catch (e) {
+      // Tratar o erro de maneira adequada
+      throw Exception('Erro ao remover contato: $e');
+    }
   }
 }

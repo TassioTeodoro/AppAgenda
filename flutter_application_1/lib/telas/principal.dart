@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../repository/contatos_repository.dart';
 import '../models/contato.dart';
 import 'cadastro.dart';
+import 'login.dart'; // Importar a tela de login
 
 class Principal extends StatefulWidget {
   const Principal({super.key});
@@ -54,18 +56,27 @@ class _PrincipalState extends State<Principal> {
     _carregarContatos(); // Atualiza a lista após remover
   }
 
+  Future<void> _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Login()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        centerTitle: true,
-        title: const Text(
-          "Agenda de Contatos",
-          style: TextStyle(
-            fontSize: 25,
+        title: const Text('Lista de Contatos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: 'Logout',
           ),
-        ),
+        ],
       ),
       body: ListView.builder(
         itemCount: _contatosList.length,
@@ -73,25 +84,33 @@ class _PrincipalState extends State<Principal> {
           Contato c = _contatosList[index];
           return ListTile(
             title: Text(c.nome),
-            subtitle: Text('Telefone: ${c.telefone}\nEmail: ${c.email}'),
+            subtitle: Text('Tel: ${c.telefone}\nEmail: ${c.email}'),
             leading: CircleAvatar(
-              child: Text(c.nome[0]), // Exibe a primeira letra do nome
+              child: Text(c.nome[0]),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Botão para editar o contato
                 IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () {
-                    _editarContato(index, c); // Chama a função de editar
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Cadastro(
+                          contatos: contatos,
+                          index: c.id!,
+                          contato: c,
+                        ),
+                      ),
+                    ).then((_) => _carregarContatos());
                   },
                 ),
-                // Botão para remover o contato
                 IconButton(
                   icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    _removerContato(c.id!); // Chama a função de remover
+                  onPressed: () async {
+                    await contatos.removeContato(c.id!);
+                    _carregarContatos();
                   },
                 ),
               ],
